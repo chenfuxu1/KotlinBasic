@@ -1,14 +1,44 @@
 package chapter05
 
+import java.io.File
+
 /**
  * Project: KotlinBasic
  * Create By: Chen.F.X
  * DateTime: 2024-09-08 16:41
  *
- * HTML DSl
+ * HTML DSL
  **/
 fun main() {
+    val htmlContent = html {
+        head {
+            "meta" { "charset"("UTF-8") }
+        }
+        body {
+            "div" {
+                "style"(
+                    """
+                    width: 200px;
+                    height: 200px;
+                    line-height: 200px;
+                    background-color: #FF0000;
+                    text-align: center
+                    """.trimIndent()
+                )
+                "span" {
+                    "style"(
+                        """
+                        color: white;
+                        font-family: Microsoft YaHei
+                        """.trimIndent()
+                    )
+                    +"Hello HTML DSL!"
+                }
+            }
+        }
+    }.render()
 
+    File("HtmlDSL.html").writeText(htmlContent)
 }
 
 fun html(block: BlockNode.() -> Unit): BlockNode {
@@ -47,9 +77,10 @@ class BlockNode(val name: String) : Node {
     val mProperties = HashMap<String, Any>()
 
     override fun render(): String {
-        return """<$name ${
-            mProperties.map { "${it.key}='${it.value}'" }.joinToString(" ")
-        }>${mChildren.joinToString("") { it.render() }}</$name>"""
+        return """
+            <$name ${mProperties.map { "${it.key}='${it.value}'" }.joinToString(" ")}>
+            ${mChildren.joinToString("") { it.render() }}
+            </$name>"""
     }
 
     operator fun String.invoke(block: BlockNode.() -> Unit): BlockNode {

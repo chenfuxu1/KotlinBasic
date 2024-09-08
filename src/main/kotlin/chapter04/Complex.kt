@@ -28,7 +28,7 @@ operator fun Complex.div(other: Complex): Complex {
 operator fun Complex.get(index: Int): Double = when (index) {
     0 -> this.real
     1 -> this.image
-    else -> throw java.lang.IndexOutOfBoundsException()
+    else -> throw IndexOutOfBoundsException()
 }
 
 fun main() {

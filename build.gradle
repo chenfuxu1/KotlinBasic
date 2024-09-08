@@ -24,3 +24,8 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+// java 编译中文乱码
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}

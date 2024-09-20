@@ -1,4 +1,4 @@
-import chapter05.KotlinInterface;
+import com.chapter05.KotlinInterface;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;

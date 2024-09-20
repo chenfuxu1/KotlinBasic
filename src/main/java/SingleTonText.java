@@ -1,5 +1,5 @@
-import chapter06.singleton.SingleTonField;
-import chapter06.singleton.SingleTonStatic;
+import com.chapter06.singleton.SingleTonField;
+import com.chapter06.singleton.SingleTonStatic;
 
 /**
  * Project: KotlinBasic

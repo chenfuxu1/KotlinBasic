@@ -4,6 +4,9 @@ plugins {
 
     id 'org.jetbrains.kotlin.plugin.noarg' version '1.3.60'
     id 'org.jetbrains.kotlin.plugin.allopen' version '1.3.60'
+    // kotlinx serialization
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.10'
+
 
 }
 
@@ -20,9 +23,20 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
+    // retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    // annotation
+    implementation files('libs/annotation-1.2.0.jar')
+
+    // 添加 moshi 库
+    implementation 'com.squareup.moshi:moshi-kotlin:1.13.0'
+
+    // kotlinx serialization
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2'
+
 }
 
 /**
@@ -31,14 +45,14 @@ dependencies {
 noArg {
     // 为 true 会执行 init 代码块内容
     invokeInitializers = true
-    annotations "chapter06.dataclass.PoKo" // 注解的路径
+    annotations "com.chapter06.dataclass.PoKo" // 注解的路径
 }
 
 /**
  * 去除数据类的 final
  */
 allOpen {
-    annotations "chapter06.dataclass.PoKo"
+    annotations "com.chapter06.dataclass.PoKo"
 }
 
 

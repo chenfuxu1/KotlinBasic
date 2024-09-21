@@ -64,6 +64,7 @@ fun intListOf(vararg ints: Int, first: Boolean = true): IntList {
 
 /**
  * 创建 [0, 1, 2, 3]
+ * 
  */
 fun main() {
     // val list = IntList.Cons(0, IntList.Cons(1, IntList.Cons(2, IntList.Cons(3, IntList.Nil))))

@@ -1,4 +1,4 @@
-package com.chapter06.jsonresult
+package com.chapter06.example.jsonresult.bean
 
 import kotlinx.serialization.Serializable
 

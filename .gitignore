@@ -1,2 +1,5 @@
 /build/
 /.gradle/
+/plugintwo/build/
+/pluginone/build/
+/plugin-common/build/

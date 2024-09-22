@@ -1,2 +1,5 @@
 rootProject.name = 'KotlinBasic'
+include 'pluginone'
+include 'plugin-common'
+include 'plugintwo'
 

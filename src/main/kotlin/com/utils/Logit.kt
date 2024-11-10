@@ -12,20 +12,19 @@ import java.util.Calendar
  */
 object Logit {
     private val simpleDateFormat: SimpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-    private val calendar: Calendar = Calendar.getInstance()
 
     fun d(msg: Any) {
-        val formatStr = simpleDateFormat.format(calendar.time)
+        val formatStr = simpleDateFormat.format(Calendar.getInstance().time)
         println("$formatStr\t${msg}")
     }
 
     fun d(tag: String, msg: Any) {
-        val formatStr = simpleDateFormat.format(calendar.time)
+        val formatStr = simpleDateFormat.format(Calendar.getInstance().time)
         println("$formatStr\t$tag\t$msg")
     }
 
     fun d(tag: String, msg: Any, throwable: Throwable) {
-        val formatStr = simpleDateFormat.format(calendar.time)
+        val formatStr = simpleDateFormat.format(Calendar.getInstance().time)
         println("$formatStr\t$tag\t$msg \n ${throwable.message}")
     }
 }

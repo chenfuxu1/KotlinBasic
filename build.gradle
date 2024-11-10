@@ -41,6 +41,9 @@ dependencies {
     // 引入模块 plugin-common
     implementation project(":plugin-common")
 
+    // 添加协程依赖
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1'
+
 }
 
 compileKotlin {

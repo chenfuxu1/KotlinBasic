@@ -15,7 +15,7 @@ object Logit {
 
     fun d(msg: Any) {
         val formatStr = simpleDateFormat.format(Calendar.getInstance().time)
-        println("$formatStr\t${msg}")
+        println("$formatStr\t${Thread.currentThread().name}\t${msg}")
     }
 
     fun d(tag: String, msg: Any) {

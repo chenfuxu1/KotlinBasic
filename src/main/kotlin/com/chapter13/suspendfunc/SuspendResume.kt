@@ -4,7 +4,6 @@ import com.utils.Logit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.EmptyCoroutineContext
 
 /**
@@ -13,7 +12,9 @@ import kotlin.coroutines.EmptyCoroutineContext
  * DateTime: 2024-11-09 23:44
  *
  * https://www.jianshu.com/p/41fb0247e497
+ * https://mp.weixin.qq.com/s?__biz=MzA5MzI3NjE2MA==&mid=2650265908&idx=1&sn=ff1ce216dd4b40fc65baadb210ff8f6b&chksm=8863285bbf14a14d49db1a0bc6da9eca6f0de6fde6f8f9b7605129d9e8a243a4cd7cbb4fa954&scene=27
  *
+ * 挂起和恢复
  **/
 /**
  * 从 launch 开始，在不阻塞当前线程的情况下启动一个新的协程，并将对协程的引用作为 Job 返回，CoroutineScope.launch
@@ -177,3 +178,161 @@ private suspend fun loadDataB(num: Int) {
     delay(1000)
     Logit.d("cfx loadDataB: $num")
 }
+
+/*
+public final class DemoKt {
+   public static final void main() {
+      CoroutineScope scope = CoroutineScopeKt.CoroutineScope((CoroutineContext)EmptyCoroutineContext.INSTANCE);
+      Logit.INSTANCE.d("cfx coroutine start...");
+      BuildersKt.launch$default(scope, (CoroutineContext)null, (CoroutineStart)null, (Function2)(new Function2((Continuation)null) {
+         int label;
+
+         @Nullable
+         public final Object invokeSuspend(@NotNull Object $result) {
+            Object var3 = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+            Object var10000;
+            switch(this.label) {
+            case 0:
+               ResultKt.throwOnFailure($result);
+               this.label = 1;
+               var10000 = DemoKt.loadDataA(this);
+               if (var10000 == var3) {
+                  return var3;
+               }
+               break;
+            case 1:
+               ResultKt.throwOnFailure($result);
+               var10000 = $result;
+               break;
+            case 2:
+               ResultKt.throwOnFailure($result);
+               return Unit.INSTANCE;
+            default:
+               throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+            }
+
+            int num = ((Number)var10000).intValue();
+            this.label = 2;
+            if (DemoKt.loadDataB(num, this) == var3) {
+               return var3;
+            } else {
+               return Unit.INSTANCE;
+            }
+         }
+
+         @NotNull
+         public final Continuation create(@Nullable Object value, @NotNull Continuation completion) {
+            Intrinsics.checkNotNullParameter(completion, "completion");
+            Function2 var3 = new <anonymous constructor>(completion);
+            return var3;
+         }
+
+         public final Object invoke(Object var1, Object var2) {
+            return ((<undefinedtype>)this.create(var1, (Continuation)var2)).invokeSuspend(Unit.INSTANCE);
+         }
+      }), 3, (Object)null);
+      Logit.INSTANCE.d("cfx coroutine end...");
+      Thread.sleep(10000L);
+   }
+
+   // $FF: synthetic method
+   public static void main(String[] var0) {
+      main();
+   }
+
+   private static final Object loadDataA(Continuation var0) {
+      Object $continuation;
+      label20: {
+         if (var0 instanceof <undefinedtype>) {
+            $continuation = (<undefinedtype>)var0;
+            if ((((<undefinedtype>)$continuation).label & Integer.MIN_VALUE) != 0) {
+               ((<undefinedtype>)$continuation).label -= Integer.MIN_VALUE;
+               break label20;
+            }
+         }
+
+         $continuation = new ContinuationImpl(var0) {
+            // $FF: synthetic field
+            Object result;
+            int label;
+
+            @Nullable
+            public final Object invokeSuspend(@NotNull Object $result) {
+               this.result = $result;
+               this.label |= Integer.MIN_VALUE;
+               return DemoKt.loadDataA(this);
+            }
+         };
+      }
+
+      Object $result = ((<undefinedtype>)$continuation).result;
+      Object var3 = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+      switch(((<undefinedtype>)$continuation).label) {
+      case 0:
+         ResultKt.throwOnFailure($result);
+         ((<undefinedtype>)$continuation).label = 1;
+         if (DelayKt.delay(3000L, (Continuation)$continuation) == var3) {
+            return var3;
+         }
+         break;
+      case 1:
+         ResultKt.throwOnFailure($result);
+         break;
+      default:
+         throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+      }
+
+      Logit.INSTANCE.d("cfx loadDataA...");
+      return Boxing.boxInt(1);
+   }
+
+   private static final Object loadDataB(int num, Continuation var1) {
+      Object $continuation;
+      label20: {
+         if (var1 instanceof <undefinedtype>) {
+            $continuation = (<undefinedtype>)var1;
+            if ((((<undefinedtype>)$continuation).label & Integer.MIN_VALUE) != 0) {
+               ((<undefinedtype>)$continuation).label -= Integer.MIN_VALUE;
+               break label20;
+            }
+         }
+
+         $continuation = new ContinuationImpl(var1) {
+            // $FF: synthetic field
+            Object result;
+            int label;
+            int I$0;
+
+            @Nullable
+            public final Object invokeSuspend(@NotNull Object $result) {
+               this.result = $result;
+               this.label |= Integer.MIN_VALUE;
+               return DemoKt.loadDataB(0, this);
+            }
+         };
+      }
+
+      Object $result = ((<undefinedtype>)$continuation).result;
+      Object var4 = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+      switch(((<undefinedtype>)$continuation).label) {
+      case 0:
+         ResultKt.throwOnFailure($result);
+         ((<undefinedtype>)$continuation).I$0 = num;
+         ((<undefinedtype>)$continuation).label = 1;
+         if (DelayKt.delay(1000L, (Continuation)$continuation) == var4) {
+            return var4;
+         }
+         break;
+      case 1:
+         num = ((<undefinedtype>)$continuation).I$0;
+         ResultKt.throwOnFailure($result);
+         break;
+      default:
+         throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+      }
+
+      Logit.INSTANCE.d("cfx loadDataB: " + num);
+      return Unit.INSTANCE;
+   }
+}
+ */

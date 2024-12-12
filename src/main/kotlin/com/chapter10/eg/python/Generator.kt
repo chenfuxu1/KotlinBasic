@@ -55,7 +55,10 @@ class GeneratorIterator<T>(private val block: suspend GeneratorScope<T>.(T) -> U
     override suspend fun customYield(value: T) = suspendCoroutine<Unit> { continuation ->
         state = when (state) {
             // 如果是 NotReady，现在 yield 了，那么值来了，已经准备好了
-            is State.NotReady -> State.Ready(continuation, value)
+            is State.NotReady -> {
+                Logit.d("customYield value: $value continuation：${continuation.hashCode()}")
+                State.Ready(continuation, value)
+            }
             is State.Ready<*> -> throw IllegalStateException("Cannot yield a value while ready!")
             State.Done -> throw IllegalStateException("Cannot yield a value while done!")
         }
@@ -64,11 +67,15 @@ class GeneratorIterator<T>(private val block: suspend GeneratorScope<T>.(T) -> U
     private fun resume() {
         when (val currentState = state) {
             // 如果是 NotReady，现在 resume 了，判断下有没有值
-            is State.NotReady -> currentState.continuation.resume(Unit)
+            is State.NotReady -> {
+                Logit.d("resume currentState.continuation：${currentState.continuation.hashCode()}")
+                currentState.continuation.resume(Unit)
+            }
         }
     }
 
     override fun hasNext(): Boolean {
+        Logit.d("cfx hasNext")
         resume()
         return state != State.Done
     }
@@ -81,6 +88,7 @@ class GeneratorIterator<T>(private val block: suspend GeneratorScope<T>.(T) -> U
             }
             is State.Ready<*> -> {
                 state = State.NotReady(currentState.continuation)
+                Logit.d("next (currentState as State.Ready<T>).nextValue: ${(currentState as State.Ready<T>).nextValue}")
                 (currentState as State.Ready<T>).nextValue
             }
             State.Done -> throw IllegalStateException("No value left!")
@@ -90,6 +98,7 @@ class GeneratorIterator<T>(private val block: suspend GeneratorScope<T>.(T) -> U
     // 表示协程体执行完毕了
     override fun resumeWith(result: Result<Any?>) {
         state = State.Done
+        Logit.d("44444")
         result.getOrThrow()
     }
 }
@@ -121,6 +130,7 @@ fun main() {
             customYield(start + i)
             Thread.sleep(1000)
         }
+        Logit.d("3333")
     }
 
     /**

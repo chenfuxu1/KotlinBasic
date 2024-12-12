@@ -15,21 +15,6 @@ import kotlin.coroutines.suspendCoroutine
  *
  * Desc:
  */
-// suspend fun main() {
-//     val job = launch {
-//         Logit.d(1)
-//         val result = hello()
-//         Logit.d("2 $result")
-//         delay(1000)
-//         Logit.d("3")
-//
-//     }
-//     Logit.d(job.isActive)
-//     job.join()
-//     Logit.d("hahah")
-// }
-
-// 增加调度器
 suspend fun main() {
     val job = launch {
         Logit.d(1)
@@ -43,6 +28,21 @@ suspend fun main() {
     job.join()
     Logit.d("hahah")
 }
+
+// 增加调度器
+// suspend fun main() {
+//     val job = launch {
+//         Logit.d(1)
+//         val result = hello()
+//         Logit.d("2 $result")
+//         delay(1000)
+//         Logit.d("3")
+//
+//     }
+//     Logit.d(job.isActive)
+//     job.join()
+//     Logit.d("hahah")
+// }
 
 suspend fun hello() = suspendCoroutine<Int> {
     thread(isDaemon = true) {

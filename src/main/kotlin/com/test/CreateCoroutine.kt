@@ -1,4 +1,4 @@
-package com.chapter10.coroutinedemo
+package com.test
 
 import com.utils.Logit
 import kotlinx.coroutines.GlobalScope

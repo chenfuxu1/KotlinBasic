@@ -41,7 +41,7 @@ class SimpleChannel<T> : Channel<T> {
     private val state = AtomicReference<Element>(Element.None)
 
     override suspend fun send(value: T) = suspendCoroutine<Unit> { continuation ->
-        Logit.d("cfx 11111 send value: $value ====================")
+        Logit.d("cfx 11111 send value: $value ==================== state: " + state.get())
         val preStatus = state.getAndUpdate {
             when (it) {
                 Element.None -> {
@@ -56,7 +56,7 @@ class SimpleChannel<T> : Channel<T> {
                 Element.Closed -> throw IllegalStateException("Can not send after closed!")
             }
         }
-        Logit.d("cfx 4444444 send preStatus: $preStatus")
+        Logit.d("cfx 4444444 send preStatus: $preStatus state: " + state.get())
 
         (preStatus as? Element.Consumer<T>)?.continuation?.resume(value)?.let {
             continuation.resume(Unit)
@@ -64,7 +64,7 @@ class SimpleChannel<T> : Channel<T> {
     }
 
     override suspend fun receive(): T = suspendCoroutine<T> { continuation ->
-        Logit.d("cfx 5555555 receive==========================")
+        Logit.d("cfx 5555555 receive========================== state: " + state.get())
         val preStatus = state.getAndUpdate {
             when (it) {
                 Element.None -> {
@@ -79,7 +79,7 @@ class SimpleChannel<T> : Channel<T> {
                 Element.Closed -> throw IllegalStateException("Can not send after closed!")
             }
         }
-        Logit.d("cfx 8888888888 receive preStatus: $preStatus")
+        Logit.d("cfx 8888888888 receive preStatus: $preStatus state: "  + state.get())
         (preStatus as? Element.Producer<T>)?.let {
             it.continuation.resume(Unit)
             continuation.resume(it.value)

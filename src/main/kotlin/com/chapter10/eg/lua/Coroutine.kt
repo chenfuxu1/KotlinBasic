@@ -50,6 +50,7 @@ class Coroutine<P, R>(
                     Status.Dead -> throw IllegalStateException("Already dead!")
                 }
             }
+            Logit.d("Coroutine#${this.hashCode()} yield\t previousStatus: $previousStatus\tvalue: $value\t status: ${status.get()}")
 
             (previousStatus as? Status.Resumed<R>)?.continuation?.resume(value)
         }
@@ -74,7 +75,7 @@ class Coroutine<P, R>(
     override fun resumeWith(result: Result<R>) {
         val previousStatus = status.getAndUpdate {
             when (it) {
-                is Status.Created -> throw  IllegalStateException("Never started!")
+                is Status.Created -> throw IllegalStateException("Never started!")
                 is Status.Yield<*> -> throw IllegalStateException("Already yielded!")
                 is Status.Resumed<*> -> {
                     Status.Dead
@@ -99,6 +100,7 @@ class Coroutine<P, R>(
                 Status.Dead -> throw IllegalStateException("Already dead!")
             }
         }
+        Logit.d("Coroutine#${this.hashCode()} resume\t previousStatus: $previousStatus\tvalue: $value\t status: ${status.get()}")
 
         // 等状态正真扭转之后才操作
         when (previousStatus) {
@@ -153,23 +155,25 @@ class DispatcherContinuation<T>(private val continuation: Continuation<T>) : Con
 suspend fun main() {
     val producer = Coroutine.create<Unit, Int>(Dispatcher()) {
         for (i in 0..3) {
-
-            Logit.d("cfx ${Thread.currentThread().name} send: $i")
+            Logit.d("producer ${Thread.currentThread().name} send: $i")
             yield(i)
         }
         200
     }
 
     val consumer = Coroutine.create<Int, Unit>(Dispatcher()) { parameter: Int ->
-        Logit.d("cfx start ${Thread.currentThread().name} parameter: $parameter")
+        Logit.d("consume start ${Thread.currentThread().name} parameter: $parameter")
         for (i in 0..3) {
+            Logit.d("consumer aaaa")
             val value = yield(Unit)
-            Logit.d("cfx ${Thread.currentThread().name} receive value: $value")
+            Logit.d("consumer bbbb")
+            Logit.d("consume ${Thread.currentThread().name} receive value: $value")
         }
     }
 
     while (producer.isActive && consumer.isActive) {
         val result = producer.resume(Unit)
+        Logit.d("main producer.resume result: $result")
         consumer.resume(result)
     }
 

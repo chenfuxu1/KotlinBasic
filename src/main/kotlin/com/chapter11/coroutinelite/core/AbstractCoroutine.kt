@@ -20,7 +20,6 @@ import kotlin.coroutines.suspendCoroutine
  */
 abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Job, Continuation<T> {
     protected val state = AtomicReference<CoroutineState>()
-    protected val aa = AtomicInteger()
 
     init {
         state.set(CoroutineState.InComplete())
@@ -34,6 +33,7 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
         get() = state.get() is CoroutineState.Complete<*>
 
     override fun invokeOnCompletion(onComplete: OnComplete): Disposable {
+        Logit.d("cfx invokeOnCompletion")
         return doOnCompleted {
             onComplete()
         }
@@ -44,6 +44,8 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
     }
 
     override fun remove(disposable: Disposable) {
+        Logit.d("cfx remove")
+
         state.updateAndGet { preState ->
             when (preState) {
                 is CoroutineState.InComplete -> {
@@ -68,18 +70,24 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
         }
     }
 
+    // 会真正的挂起
     private suspend fun joinSuspend() = suspendCoroutine<Unit> { continuation ->
         doOnCompleted { result ->
+            Logit.d("cfx joinSuspend resume")
+            // 这里当前状态不是，Complete，所以不会走 doOnCompleted 的 block，所以不会恢复，就一直挂起
             continuation.resume(Unit)
         }
     }
 
-    private fun doOnCompleted(block: (Result<T>) -> Unit): Disposable {
+    protected fun doOnCompleted(block: (Result<T>) -> Unit): Disposable {
+        Logit.d("cfx doOnCompleted 11111111")
         val disposable = CompletionHandlerDisposable(this, block)
+        Logit.d("cfx doOnCompleted disposable: $disposable")
         val newState = state.updateAndGet { preState ->
 
             when (preState) {
                 is CoroutineState.InComplete -> {
+                    Logit.d("cfx doOnCompleted 222222")
                     CoroutineState.InComplete().from(preState).with(disposable)
                 }
                 is CoroutineState.Complete<*> -> {
@@ -87,8 +95,10 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
                 }
             }
         }
+        Logit.d("cfx doOnCompleted 333333 newState: $newState ")
 
         (newState as? CoroutineState.Complete<T>)?.let {
+            Logit.d("cfx doOnCompleted block")
             block(
                 when {
                     it.value != null -> Result.success(it.value)
@@ -104,13 +114,14 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
         TODO("Not yet implemented")
     }
 
+    // 协程执行完调用
     override fun resumeWith(result: Result<T>) {
         Logit.d("cfx resumeWith")
         val newState = state.updateAndGet { preState ->
             when (preState) {
                 // 前一个状态是未完成
                 is CoroutineState.InComplete -> {
-                    // 根据前一个状态，返回新的状态
+                    // 转成完成的状态，返回新的状态
                     CoroutineState.Complete(result.getOrNull(), result.exceptionOrNull()).from(preState)
                 }
                 // 如果前一个状态已经完成了，那么直接抛异常
@@ -119,6 +130,7 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
                 }
             }
         }
+        Logit.d("cfx resumeWith newState: $newState")
 
         // 处理异常
         // (newState as CoroutineState.Complete<T>).exception?.let {  }

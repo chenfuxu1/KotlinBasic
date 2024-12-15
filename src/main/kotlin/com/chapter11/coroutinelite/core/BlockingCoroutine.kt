@@ -26,9 +26,11 @@ class BlockingQueueDispatcher: LinkedBlockingQueue<EventTask>(), Dispatcher {
 class BlockingCoroutine<T>(context: CoroutineContext, private val eventQueue: LinkedBlockingQueue<EventTask>): AbstractCoroutine<T>(context) {
     fun joinBlocking(): T {
         while (!isCompleted) {
-            Logit.d("cfx joinBlocking")
+            Logit.d("cfx joinBlocking eventQueue.size: " + eventQueue.size)
             // 执行队列中的 block 函数
-            eventQueue.take().invoke()
+            val block = eventQueue.take()
+            Logit.d("cfx joinBlocking eventQueue.size: " + eventQueue.size + " block: ${block.hashCode()}")
+            block.invoke()
         }
         // 协程执行完了
         return (state.get() as CoroutineState.Complete<T>).let {

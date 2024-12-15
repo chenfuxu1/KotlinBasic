@@ -1,5 +1,7 @@
 package com.chapter11.coroutinelite.core
 
+import com.utils.Logit
+
 /**
  * Project: KotlinBasic
  * Create By: Chen.F.X
@@ -37,6 +39,7 @@ sealed class CoroutineState {
     // 完成后通知更新
     fun <T> notifyCompletion(result: Result<T>) {
         this.disposableList.loopOn<CompletionHandlerDisposable<T>> {
+            Logit.d("cfx notifyCompletion completionHandlerDisposable: $it")
             it.onComplete(result)
         }
     }

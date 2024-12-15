@@ -25,6 +25,6 @@ object Logit {
 
     fun d(tag: String, msg: Any, throwable: Throwable) {
         val formatStr = simpleDateFormat.format(Calendar.getInstance().time)
-        println("$formatStr\t$tag\t$msg \n ${throwable.message}")
+        println("$formatStr\t$tag\t$msg \n $throwable")
     }
 }

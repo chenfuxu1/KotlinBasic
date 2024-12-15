@@ -18,6 +18,8 @@ fun main() = runBlocking {
         Logit.d("cfx 222")
         delay(3000)
         Logit.d("cfx 333")
+        delay(3000)
+        Logit.d("cfx aaaaaaaa")
     }
     Logit.d("cfx 444")
     job.join()

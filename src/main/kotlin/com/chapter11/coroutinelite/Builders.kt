@@ -3,9 +3,11 @@ package com.chapter11.coroutinelite
 import com.chapter11.coroutinelite.context.CoroutineName
 import com.chapter11.coroutinelite.core.BlockingCoroutine
 import com.chapter11.coroutinelite.core.BlockingQueueDispatcher
+import com.chapter11.coroutinelite.core.DeferredCoroutine
 import com.chapter11.coroutinelite.core.StandardCoroutine
 import com.chapter11.coroutinelite.dispather.DispatcherContext
 import com.chapter11.coroutinelite.dispather.Dispatchers
+import com.utils.Logit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
@@ -41,6 +43,14 @@ fun <T> runBlocking(context: CoroutineContext = EmptyCoroutineContext, block: su
     val eventQueue = BlockingQueueDispatcher()
     val newContext = newCoroutineContext(context + DispatcherContext(eventQueue))
     val completion = BlockingCoroutine<T>(newContext, eventQueue)
+    Logit.d("block: ${block.hashCode()}")
     block.startCoroutine(completion)
+    Logit.d("cfx runBlocking 1111")
     return completion.joinBlocking()
+}
+
+fun <T> async(context: CoroutineContext = EmptyCoroutineContext, block: suspend () -> T): Deferred<T> {
+    val completion = DeferredCoroutine<T>(newCoroutineContext(context))
+    block.startCoroutine(completion)
+    return completion
 }

@@ -1,5 +1,6 @@
 package com.chapter11.coroutinelite
 
+import com.utils.Logit
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -20,6 +21,7 @@ private val executor = Executors.newScheduledThreadPool(1) { runnable ->
 
 suspend fun delay(time: Long, unit: TimeUnit = TimeUnit.MILLISECONDS) = suspendCoroutine<Unit> { continuation ->
     executor.schedule({
+        Logit.d("delay resume")
         continuation.resume(Unit)
     }, time, unit)
 }

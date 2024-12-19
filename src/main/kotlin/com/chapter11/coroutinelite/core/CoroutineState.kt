@@ -18,6 +18,8 @@ sealed class CoroutineState {
     // 完成
     class Complete<T>(val value: T? = null, val exception: Throwable? = null): CoroutineState()
 
+    class Cancelling: CoroutineState()
+
     // 返回一个新的对象
     fun from(state: CoroutineState): CoroutineState {
         this.disposableList = state.disposableList
@@ -41,6 +43,13 @@ sealed class CoroutineState {
         this.disposableList.loopOn<CompletionHandlerDisposable<T>> {
             Logit.d("cfx notifyCompletion completionHandlerDisposable: $it")
             it.onComplete(result)
+        }
+    }
+
+    // 通知进行取消
+    fun notifyCancellation() {
+        this.disposableList.loopOn<CancellationHandlerDisposable> {
+            it.onCancel
         }
     }
 

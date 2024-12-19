@@ -1,5 +1,6 @@
 package com.chapter11.coroutinelite
 
+import com.chapter11.coroutinelite.cancel.suspendCancellableCoroutine
 import com.utils.Logit
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -24,4 +25,14 @@ suspend fun delay(time: Long, unit: TimeUnit = TimeUnit.MILLISECONDS) = suspendC
         Logit.d("delay resume")
         continuation.resume(Unit)
     }, time, unit)
+}
+
+suspend fun delayCancellable(time: Long, unit: TimeUnit = TimeUnit.MILLISECONDS) = suspendCancellableCoroutine<Unit> { continuation ->
+    val future = executor.schedule({
+        Logit.d("delayCancellable resume")
+        continuation.resume(Unit)
+    }, time, unit)
+    continuation.invokeOnCancel {
+        future.cancel(true)
+    }
 }

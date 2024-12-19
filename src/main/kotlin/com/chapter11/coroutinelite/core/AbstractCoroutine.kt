@@ -18,8 +18,10 @@ import kotlin.coroutines.suspendCoroutine
  *
  * Desc:
  */
-abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Job, Continuation<T> {
+abstract class AbstractCoroutine<T>(context: CoroutineContext) : Job, Continuation<T> {
     protected val state = AtomicReference<CoroutineState>()
+
+    override val context: CoroutineContext = context + this
 
     init {
         state.set(CoroutineState.InComplete())
@@ -32,6 +34,7 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
     override val isCompleted: Boolean
         get() = state.get() is CoroutineState.Complete<*>
 
+    // 协程完成时回调
     override fun invokeOnCompletion(onComplete: OnComplete): Disposable {
         Logit.d("cfx invokeOnCompletion")
         return doOnCompleted {
@@ -39,17 +42,58 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
         }
     }
 
+    // 协程取消时回调
     override fun invokeOnCancel(onCancel: OnCancel): Disposable {
-        TODO("Not yet implemented")
+        val disposable = CancellationHandlerDisposable(this, onCancel)
+        val newState = state.updateAndGet { prev ->
+            when (prev) {
+                is CoroutineState.InComplete -> {
+                    CoroutineState.InComplete().from(prev).with(disposable)
+                }
+                is CoroutineState.Cancelling,
+                is CoroutineState.Complete<*> -> {
+                    // 如果是 Cancelling 或 Complete 状态，直接返回当前状态
+                    prev
+                }
+            }
+        }
+
+        (newState as? CoroutineState.Cancelling)?.let {
+            // 如果当前是取消的状态，那就回调一下 onCancel，如果是 Complete 就不用再次回调了
+            onCancel()
+        }
+        return disposable
+    }
+
+    override fun cancel() {
+        val newState = state.updateAndGet { prev ->
+            when (prev) {
+                is CoroutineState.InComplete -> {
+                    // 状态扭转为 Cancelling
+                    CoroutineState.Cancelling().from(prev)
+                }
+                is CoroutineState.Cancelling,
+                is CoroutineState.Complete<*> -> {
+                    // 如果已经取消，或者已经完成，那就直接返回当前状态
+                    prev
+                }
+
+            }
+        }
+        if(newState is CoroutineState.Cancelling) {
+            newState.notifyCancellation()
+        }
     }
 
     override fun remove(disposable: Disposable) {
         Logit.d("cfx remove")
-
         state.updateAndGet { preState ->
             when (preState) {
                 is CoroutineState.InComplete -> {
                     CoroutineState.InComplete().from(preState).without(disposable)
+                }
+                is CoroutineState.Cancelling -> {
+                    CoroutineState.Cancelling().from(preState).without(disposable)
                 }
                 is CoroutineState.Complete<*> -> {
                     preState
@@ -63,6 +107,7 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
      */
     override suspend fun join() {
         when (state.get()) {
+            is CoroutineState.Cancelling,
             // 如果协程未完成，那就执行挂起函数
             is CoroutineState.InComplete -> return joinSuspend()
             // 如果执行完，那就直接返回
@@ -90,9 +135,13 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
                     Logit.d("cfx doOnCompleted 222222")
                     CoroutineState.InComplete().from(preState).with(disposable)
                 }
+                is CoroutineState.Cancelling -> {
+                    CoroutineState.Cancelling().from(preState).with(disposable)
+                }
                 is CoroutineState.Complete<*> -> {
                     preState
                 }
+
             }
         }
         Logit.d("cfx doOnCompleted 333333 newState: $newState ")
@@ -110,15 +159,12 @@ abstract class AbstractCoroutine<T>(override val context: CoroutineContext) : Jo
         return disposable
     }
 
-    override fun cancel() {
-        TODO("Not yet implemented")
-    }
-
     // 协程执行完调用
     override fun resumeWith(result: Result<T>) {
         Logit.d("cfx resumeWith")
         val newState = state.updateAndGet { preState ->
             when (preState) {
+                is CoroutineState.Cancelling,
                 // 前一个状态是未完成
                 is CoroutineState.InComplete -> {
                     // 转成完成的状态，返回新的状态

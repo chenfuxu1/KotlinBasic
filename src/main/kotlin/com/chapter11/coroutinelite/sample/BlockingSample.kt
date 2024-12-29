@@ -3,6 +3,7 @@ package com.chapter11.coroutinelite.sample
 import com.chapter11.coroutinelite.delay
 import com.chapter11.coroutinelite.launch
 import com.chapter11.coroutinelite.runBlocking
+import com.chapter11.coroutinelite.scope.GlobalScope
 import com.utils.Logit
 
 /**
@@ -14,7 +15,7 @@ import com.utils.Logit
  */
 fun main() = runBlocking {
     Logit.d("cfx 111")
-    val job = launch {
+    val job = GlobalScope.launch {
         Logit.d("cfx 222")
         delay(3000)
         Logit.d("cfx 333")

@@ -1,5 +1,6 @@
 package com.chapter11.coroutinelite.core
 
+import com.chapter11.coroutinelite.exception.CoroutineExceptionHandler
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -10,5 +11,10 @@ import kotlin.coroutines.CoroutineContext
  * Desc: 标准的协程
  */
 class StandardCoroutine(context: CoroutineContext) : AbstractCoroutine<Unit>(context) {
-
+    override fun handleJobException(e: Throwable): Boolean {
+        context[CoroutineExceptionHandler]?.handleException(context, e) ?: Thread.currentThread().let {
+            it.uncaughtExceptionHandler.uncaughtException(it, e)
+        }
+        return true
+    }
 }

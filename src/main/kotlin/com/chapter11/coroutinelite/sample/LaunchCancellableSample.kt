@@ -4,6 +4,7 @@ import com.chapter11.coroutinelite.delay
 import com.chapter11.coroutinelite.delayCancellable
 import com.chapter11.coroutinelite.dispather.Dispatchers
 import com.chapter11.coroutinelite.launch
+import com.chapter11.coroutinelite.scope.GlobalScope
 import com.utils.Logit
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
@@ -17,7 +18,7 @@ import kotlin.coroutines.suspendCoroutine
  * Desc:
  */
 suspend fun main() {
-    val job = launch {
+    val job = GlobalScope.launch {
         Logit.d(1)
         val result = aaa()
         Logit.d("2 $result")

@@ -1,15 +1,15 @@
 package com.chapter11.coroutinelite.core
 
+import com.chapter11.coroutinelite.CancellationException
 import com.chapter11.coroutinelite.Job
 import com.chapter11.coroutinelite.OnCancel
 import com.chapter11.coroutinelite.OnComplete
+import com.chapter11.coroutinelite.context.CoroutineName
+import com.chapter11.coroutinelite.scope.CoroutineScope
 import com.utils.Logit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlin.coroutines.*
 
 /**
  * Project: KotlinBasic
@@ -18,13 +18,23 @@ import kotlin.coroutines.suspendCoroutine
  *
  * Desc:
  */
-abstract class AbstractCoroutine<T>(context: CoroutineContext) : Job, Continuation<T> {
+abstract class AbstractCoroutine<T>(context: CoroutineContext) : Job, Continuation<T>, CoroutineScope {
     protected val state = AtomicReference<CoroutineState>()
 
     override val context: CoroutineContext = context + this
 
+    override val scopeContext: CoroutineContext
+        get() = context
+
+    protected val parentJob = context[Job]
+
+    private var parentCancelDisposable: Disposable? = null
+
     init {
         state.set(CoroutineState.InComplete())
+        parentCancelDisposable = parentJob?.invokeOnCancel {
+            cancel()
+        }
     }
 
     // 当前是什么状态
@@ -83,6 +93,8 @@ abstract class AbstractCoroutine<T>(context: CoroutineContext) : Job, Continuati
         if(newState is CoroutineState.Cancelling) {
             newState.notifyCancellation()
         }
+
+        parentCancelDisposable?.dispose()
     }
 
     override fun remove(disposable: Disposable) {
@@ -111,7 +123,13 @@ abstract class AbstractCoroutine<T>(context: CoroutineContext) : Job, Continuati
             // 如果协程未完成，那就执行挂起函数
             is CoroutineState.InComplete -> return joinSuspend()
             // 如果执行完，那就直接返回
-            is CoroutineState.Complete<*> -> return
+            is CoroutineState.Complete<*> -> {
+                val currentCallingJobState = coroutineContext[Job]?.isActive ?: return
+                if (!currentCallingJobState) {
+                    throw CancellationException("Coroutine is cancelled")
+                }
+                return
+            }
         }
     }
 
@@ -179,11 +197,36 @@ abstract class AbstractCoroutine<T>(context: CoroutineContext) : Job, Continuati
         Logit.d("cfx resumeWith newState: $newState")
 
         // 处理异常
-        // (newState as CoroutineState.Complete<T>).exception?.let {  }
+        (newState as CoroutineState.Complete<T>).exception?.let(::tryHandleException)
 
         // 没有异常，通知 completion
         newState.notifyCompletion(result)
         // 通知完成后，清除回调，防止内存泄漏
         newState.clear()
+        parentCancelDisposable?.dispose()
+    }
+
+    private fun tryHandleException(e: Throwable): Boolean {
+        return when (e) {
+            is CancellationException -> false
+            else -> {
+                (parentJob as AbstractCoroutine<*>).handleChildException(e)?.takeIf {
+                    it
+                } ?: handleJobException(e)
+            }
+        }
+    }
+
+    protected open fun handleJobException(e: Throwable): Boolean {
+        return false
+    }
+
+    protected open fun handleChildException(e: Throwable): Boolean {
+        cancel()
+        return  tryHandleException(e)
+    }
+
+    override fun toString(): String {
+        return "${context[CoroutineName]?.name}"
     }
 }

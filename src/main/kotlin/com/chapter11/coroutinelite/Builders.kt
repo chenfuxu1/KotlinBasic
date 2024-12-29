@@ -7,6 +7,7 @@ import com.chapter11.coroutinelite.core.DeferredCoroutine
 import com.chapter11.coroutinelite.core.StandardCoroutine
 import com.chapter11.coroutinelite.dispather.DispatcherContext
 import com.chapter11.coroutinelite.dispather.Dispatchers
+import com.chapter11.coroutinelite.scope.CoroutineScope
 import com.utils.Logit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.ContinuationInterceptor
@@ -23,14 +24,14 @@ import kotlin.coroutines.startCoroutine
  */
 private var coroutineIndex = AtomicInteger(0)
 
-fun launch(context: CoroutineContext = EmptyCoroutineContext, block: suspend () -> Unit): Job {
+fun CoroutineScope.launch(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit): Job {
     val completion = StandardCoroutine(newCoroutineContext(context))
-    block.startCoroutine(completion)
+    block.startCoroutine(completion, completion)
     return completion
 }
 
-fun newCoroutineContext(context: CoroutineContext): CoroutineContext {
-    var combined = context + CoroutineName("@Coroutine#${coroutineIndex.getAndIncrement()}")
+fun CoroutineScope.newCoroutineContext(context: CoroutineContext): CoroutineContext {
+    var combined = scopeContext + context + CoroutineName("@Coroutine#${coroutineIndex.getAndIncrement()}")
     // 如果 combined 既不是默认调度器，而且 ContinuationInterceptor 也为空
     if (combined !== Dispatchers.Default && combined[ContinuationInterceptor] == null) {
         combined += Dispatchers.Default
@@ -41,7 +42,7 @@ fun newCoroutineContext(context: CoroutineContext): CoroutineContext {
 fun <T> runBlocking(context: CoroutineContext = EmptyCoroutineContext, block: suspend () -> T): T {
     // 需要单独的调度器
     val eventQueue = BlockingQueueDispatcher()
-    val newContext = newCoroutineContext(context + DispatcherContext(eventQueue))
+    val newContext = context + DispatcherContext(eventQueue)
     val completion = BlockingCoroutine<T>(newContext, eventQueue)
     Logit.d("block: ${block.hashCode()}")
     block.startCoroutine(completion)
@@ -49,8 +50,8 @@ fun <T> runBlocking(context: CoroutineContext = EmptyCoroutineContext, block: su
     return completion.joinBlocking()
 }
 
-fun <T> async(context: CoroutineContext = EmptyCoroutineContext, block: suspend () -> T): Deferred<T> {
+fun <T> CoroutineScope.async(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): Deferred<T> {
     val completion = DeferredCoroutine<T>(newCoroutineContext(context))
-    block.startCoroutine(completion)
+    block.startCoroutine(completion, completion)
     return completion
 }

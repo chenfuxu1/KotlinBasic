@@ -2,6 +2,7 @@ package com.chapter11.coroutinelite.sample
 
 import com.chapter11.coroutinelite.async
 import com.chapter11.coroutinelite.delay
+import com.chapter11.coroutinelite.scope.GlobalScope
 import com.utils.Logit
 import java.lang.ArithmeticException
 
@@ -13,7 +14,7 @@ import java.lang.ArithmeticException
  **/
 suspend fun main() {
     Logit.d("cfx start")
-    val deferred = async {
+    val deferred = GlobalScope.async {
         Logit.d("cfx 22222")
         delay(1000)
         Logit.d("cfx 33333333")

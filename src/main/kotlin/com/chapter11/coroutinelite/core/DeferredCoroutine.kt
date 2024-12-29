@@ -1,7 +1,10 @@
 package com.chapter11.coroutinelite.core
 
+import com.chapter11.coroutinelite.CancellationException
 import com.chapter11.coroutinelite.Deferred
+import com.chapter11.coroutinelite.Job
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.suspendCoroutine
 
 /**
@@ -14,9 +17,14 @@ class DeferredCoroutine<T>(context: CoroutineContext) : AbstractCoroutine<T>(con
     override suspend fun await(): T {
         return when (val currentState = state.get()) {
             is CoroutineState.Cancelling,
-            // 如果未完成，那就等待
+                // 如果未完成，那就等待
             is CoroutineState.InComplete -> awaitSuspend()
-            is CoroutineState.Complete<*> -> (currentState.value as T?) ?: throw currentState.exception!!
+            is CoroutineState.Complete<*> -> {
+                coroutineContext[Job]?.isActive?.takeIf { !it }?.let {
+                    throw CancellationException("Coroutine is cancelled")
+                }
+                (currentState.value as T?) ?: throw currentState.exception!!
+            }
         }
     }
 

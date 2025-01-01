@@ -43,6 +43,7 @@ dependencies {
 
     // 添加协程依赖
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1' // 安卓
 
     // 引入安卓的库，compileOnly 只在编译的时候依赖，真正运行会去取系统上 handler 的实现
     compileOnly 'com.google.android:android:4.1.1.4'
